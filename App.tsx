@@ -25,15 +25,15 @@ const App: React.FC = () => {
       const saved = localStorage.getItem('egintech_config');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Merge with defaults only to ensure structure, but prioritize saved data
         return { 
           ...DEFAULT_CONFIG, 
           ...parsed,
-          // Ensure arrays are handled correctly (prioritize saved even if empty)
           services: parsed.services !== undefined ? parsed.services : DEFAULT_CONFIG.services,
           portfolio: parsed.portfolio !== undefined ? parsed.portfolio : DEFAULT_CONFIG.portfolio,
           sliderItems: parsed.sliderItems !== undefined ? parsed.sliderItems : DEFAULT_CONFIG.sliderItems,
-          users: parsed.users !== undefined ? parsed.users : DEFAULT_CONFIG.users
+          users: parsed.users !== undefined ? parsed.users : DEFAULT_CONFIG.users,
+          reviews: parsed.reviews !== undefined ? parsed.reviews : DEFAULT_CONFIG.reviews,
+          faqs: parsed.faqs !== undefined ? parsed.faqs : DEFAULT_CONFIG.faqs
         };
       }
     } catch (e) {
@@ -52,7 +52,7 @@ const App: React.FC = () => {
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>();
 
-  // Persistence Effects - Saves whenever config or inquiries change
+  // Persistence Effects
   useEffect(() => {
     try {
       localStorage.setItem('egintech_inquiries', JSON.stringify(inquiries));
@@ -63,12 +63,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      // Always save config changes to prevent data loss
       localStorage.setItem('egintech_config', JSON.stringify(config));
     } catch (e) {
       console.error("Failed to save config:", e);
       if (e instanceof Error && e.name === 'QuotaExceededError') {
-        alert("Storage limit exceeded. Try using smaller images or removing old portfolio items.");
+        alert("Storage limit exceeded. Try using smaller images.");
       }
     }
   }, [config]);
@@ -97,12 +96,10 @@ const App: React.FC = () => {
     setShowInquiryForm(false);
   };
 
-  // Use functional updates for status to avoid race conditions
   const updateInquiryStatus = useCallback((id: string, updates: Partial<Inquiry>) => {
     setInquiries(prev => prev.map(inq => inq.id === id ? { ...inq, ...updates } : inq));
   }, []);
 
-  // Use functional updates for config to prevent stale closure data loss
   const updateConfig = useCallback((newConfig: AppConfig | ((prev: AppConfig) => AppConfig)) => {
     setConfig(prev => {
       const updated = typeof newConfig === 'function' ? newConfig(prev) : newConfig;
@@ -247,6 +244,49 @@ const App: React.FC = () => {
               </div>
             </section>
 
+            {/* NEW: Reviews Section */}
+            <section id="reviews" className="py-24 bg-gray-50 border-t border-gray-100">
+              <div className="max-w-7xl mx-auto px-4">
+                <div className="text-center mb-16">
+                  <h2 className="text-4xl md:text-5xl font-bold font-outfit text-gray-900 mb-4">Client Reviews</h2>
+                  <p className="text-gray-500 max-w-2xl mx-auto">What our clients say about our services and dedication.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {config.reviews.map(rev => (
+                    <div key={rev.id} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                      <div className="flex items-center gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className={`w-5 h-5 ${i < rev.rating ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-gray-600 italic mb-6">"{rev.comment}"</p>
+                      <div className="font-bold text-gray-900">— {rev.clientName}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* NEW: FAQ Section */}
+            <section id="faq" className="py-24 bg-white border-t border-gray-100">
+              <div className="max-w-3xl mx-auto px-4">
+                <div className="text-center mb-16">
+                  <h2 className="text-4xl md:text-5xl font-bold font-outfit text-gray-900 mb-4">Frequently Asked Questions</h2>
+                  <p className="text-gray-500">Quick answers to common questions about our platform and services.</p>
+                </div>
+                <div className="space-y-6">
+                  {config.faqs.map(faq => (
+                    <div key={faq.id} className="p-6 rounded-2xl border border-gray-100 bg-gray-50">
+                      <h4 className="font-bold text-gray-900 mb-2">{faq.question}</h4>
+                      <p className="text-sm text-gray-600 leading-relaxed">{faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             {/* Features & Schemes Section */}
             <section className="py-24 bg-gray-50 border-t border-gray-100">
               <div className="max-w-7xl mx-auto px-4 text-center mb-16">
@@ -298,7 +338,25 @@ const App: React.FC = () => {
             <div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">Reg: {config.regNo}</p>{config.tradeMark && <p className="text-[10px] text-gray-400">Trade Mark: {config.tradeMark}</p>}</div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
-            <div><h4 className="font-bold text-sm mb-4">Leadership</h4><ul className="text-sm text-gray-500 space-y-2">{config.businessHead && <li><span className="font-semibold text-gray-800">Business Head:</span> {config.businessHead}</li>}{config.techHead && <li><span className="font-semibold text-gray-800">Tech Head:</span> {config.techHead}</li>}</ul></div>
+            <div>
+              <h4 className="font-bold text-sm mb-4">Leadership</h4>
+              <ul className="text-sm text-gray-500 space-y-3">
+                {config.businessHead && (
+                  <li>
+                    <span className="font-semibold text-gray-800 block">Business Head:</span> 
+                    {config.businessHead} <br/> 
+                    {config.adminPhone && <span className="font-bold text-blue-700 text-base">{config.adminPhone}</span>}
+                  </li>
+                )}
+                {config.techHead && (
+                  <li>
+                    <span className="font-semibold text-gray-800 block">Tech Head:</span> 
+                    {config.techHead} <br/>
+                    {config.techHeadPhone && <span className="font-bold text-blue-700 text-base">{config.techHeadPhone}</span>}
+                  </li>
+                )}
+              </ul>
+            </div>
             <div className="space-y-4">
               <h4 className="font-bold text-sm mb-2">Management Portals</h4>
               <div className="flex flex-col gap-3">

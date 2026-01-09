@@ -37,5 +37,13 @@ export const DEFAULT_CONFIG: AppConfig = {
     { id: 's2', text: "Low Cost - High Quality", image: "https://picsum.photos/seed/quality/1600/600" },
     { id: 's3', text: "5+1 Free Scheme", image: "https://picsum.photos/seed/offer/1600/600" },
     { id: 's4', text: "Assured Gift for Everyone", image: "https://picsum.photos/seed/gift/1600/600" },
+  ],
+  reviews: [
+    { id: 'rev1', clientName: "Rahul Sharma", comment: "Excellent service and timely delivery. The dynamic website they built is amazing!", rating: 5 },
+    { id: 'rev2', clientName: "Priya Singh", comment: "The career guidance session was really eye-opening. Highly recommended.", rating: 4 }
+  ],
+  faqs: [
+    { id: 'faq1', question: "What is the 5+1 Free Scheme?", answer: "When you book 5 services of the same category, you get the 6th one absolutely free!" },
+    { id: 'faq2', question: "How much advance payment is required?", answer: "We require a 50% advance deposit to start the work, as mentioned in the inquiry form." }
   ]
 };

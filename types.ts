@@ -32,6 +32,19 @@ export interface SliderItem {
   image: string;
 }
 
+export interface Review {
+  id: string;
+  clientName: string;
+  comment: string;
+  rating: number;
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
 export interface AppConfig {
   companyName: string;
   logoInitial: string;
@@ -48,6 +61,8 @@ export interface AppConfig {
   users: User[];
   portfolio: PortfolioItem[];
   sliderItems: SliderItem[];
+  reviews: Review[];
+  faqs: FAQItem[];
 }
 
 export interface Inquiry {

@@ -1,0 +1,8 @@
+{
+  "name": "Online Service Portal",
+  "description": "White-labeled service portal for EGINTECH featuring website design, software development, and educational services with integrated inquiry management and video generation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

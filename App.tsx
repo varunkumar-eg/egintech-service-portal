@@ -19,21 +19,22 @@ const App: React.FC = () => {
     } catch { return null; }
   });
 
-  // Dynamic App Config State - Robust loading
+  // Dynamic App Config State - Robust loading to prevent data loss
   const [config, setConfig] = useState<AppConfig>(() => {
     try {
       const saved = localStorage.getItem('egintech_config');
       if (saved) {
         const parsed = JSON.parse(saved);
+        // Merge strategy: Start with defaults, then apply parsed, but ensure array fields exist
         return { 
           ...DEFAULT_CONFIG, 
           ...parsed,
-          services: parsed.services !== undefined ? parsed.services : DEFAULT_CONFIG.services,
-          portfolio: parsed.portfolio !== undefined ? parsed.portfolio : DEFAULT_CONFIG.portfolio,
-          sliderItems: parsed.sliderItems !== undefined ? parsed.sliderItems : DEFAULT_CONFIG.sliderItems,
-          users: parsed.users !== undefined ? parsed.users : DEFAULT_CONFIG.users,
-          reviews: parsed.reviews !== undefined ? parsed.reviews : DEFAULT_CONFIG.reviews,
-          faqs: parsed.faqs !== undefined ? parsed.faqs : DEFAULT_CONFIG.faqs
+          services: Array.isArray(parsed.services) ? parsed.services : DEFAULT_CONFIG.services,
+          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : DEFAULT_CONFIG.portfolio,
+          sliderItems: Array.isArray(parsed.sliderItems) ? parsed.sliderItems : DEFAULT_CONFIG.sliderItems,
+          users: Array.isArray(parsed.users) ? parsed.users : DEFAULT_CONFIG.users,
+          reviews: Array.isArray(parsed.reviews) ? parsed.reviews : DEFAULT_CONFIG.reviews,
+          faqs: Array.isArray(parsed.faqs) ? parsed.faqs : DEFAULT_CONFIG.faqs
         };
       }
     } catch (e) {
@@ -52,7 +53,7 @@ const App: React.FC = () => {
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>();
 
-  // Persistence Effects
+  // Persistence Effects - Ensure data is saved immediately
   useEffect(() => {
     try {
       localStorage.setItem('egintech_inquiries', JSON.stringify(inquiries));
@@ -63,12 +64,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     try {
+      // Save full config to prevent data loss
       localStorage.setItem('egintech_config', JSON.stringify(config));
     } catch (e) {
       console.error("Failed to save config:", e);
-      if (e instanceof Error && e.name === 'QuotaExceededError') {
-        alert("Storage limit exceeded. Try using smaller images.");
-      }
     }
   }, [config]);
 
@@ -140,7 +139,11 @@ const App: React.FC = () => {
               <h1 className="text-2xl font-bold font-outfit tracking-tight text-gray-900 leading-none">
                 {config.companyName || "Your Brand"}
               </h1>
-              <p className="text-[10px] text-gray-500 font-medium mt-1">Reg: {config.regNo} {config.tradeMark && `• ${config.tradeMark}`}</p>
+              {config.tradeMark && (
+                <p className="text-[10px] text-gray-500 font-black mt-1 uppercase tracking-widest">
+                  TM : {config.tradeMark}
+                </p>
+              )}
             </div>
           </div>
 
@@ -244,7 +247,7 @@ const App: React.FC = () => {
               </div>
             </section>
 
-            {/* NEW: Reviews Section */}
+            {/* Reviews Section */}
             <section id="reviews" className="py-24 bg-gray-50 border-t border-gray-100">
               <div className="max-w-7xl mx-auto px-4">
                 <div className="text-center mb-16">
@@ -269,7 +272,7 @@ const App: React.FC = () => {
               </div>
             </section>
 
-            {/* NEW: FAQ Section */}
+            {/* FAQ Section */}
             <section id="faq" className="py-24 bg-white border-t border-gray-100">
               <div className="max-w-3xl mx-auto px-4">
                 <div className="text-center mb-16">
@@ -283,32 +286,6 @@ const App: React.FC = () => {
                       <p className="text-sm text-gray-600 leading-relaxed">{faq.answer}</p>
                     </div>
                   ))}
-                </div>
-              </div>
-            </section>
-
-            {/* Features & Schemes Section */}
-            <section className="py-24 bg-gray-50 border-t border-gray-100">
-              <div className="max-w-7xl mx-auto px-4 text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold font-outfit text-gray-900 mb-4">Excellent Growth Opportunities</h2>
-                <p className="text-gray-500 max-w-2xl mx-auto">Innovative solutions with a commitment to quality and affordable pricing.</p>
-              </div>
-              <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-center">
-                <div className="p-8 rounded-3xl bg-blue-50 border border-blue-100">
-                  <div className="text-4xl font-bold mb-2 text-blue-600">5+1</div>
-                  <div className="text-gray-600 uppercase text-xs tracking-widest font-black">Free Scheme</div>
-                </div>
-                <div className="p-8 rounded-3xl bg-white border border-gray-100 shadow-sm">
-                  <div className="text-4xl font-bold mb-2 text-gray-900">100%</div>
-                  <div className="text-gray-600 uppercase text-xs tracking-widest font-black">Quality Assured</div>
-                </div>
-                <div className="p-8 rounded-3xl bg-white border border-gray-100 shadow-sm">
-                  <div className="text-4xl font-bold mb-2 text-gray-900">24/7</div>
-                  <div className="text-gray-600 uppercase text-xs tracking-widest font-black">Admin Support</div>
-                </div>
-                <div className="p-8 rounded-3xl bg-blue-50 border border-blue-100">
-                  <div className="text-4xl font-bold mb-2 text-blue-600">Gift</div>
-                  <div className="text-gray-600 uppercase text-xs tracking-widest font-black">Assured for All</div>
                 </div>
               </div>
             </section>
@@ -335,7 +312,10 @@ const App: React.FC = () => {
           <div className="max-w-xs">
             <div className="flex items-center gap-3 mb-6">{config.logoUrl && <img src={config.logoUrl} className="w-10 h-10 object-contain" alt="Logo" />}<h3 className="text-xl font-bold">{config.companyName || "Our Agency"}</h3></div>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">Innovative digital agency specialized in web development and career guidance.</p>
-            <div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">Reg: {config.regNo}</p>{config.tradeMark && <p className="text-[10px] text-gray-400">Trade Mark: {config.tradeMark}</p>}</div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">Reg: {config.regNo}</p>
+              {config.tradeMark && <p className="text-[10px] text-gray-400">TM : {config.tradeMark}</p>}
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
             <div>
@@ -381,6 +361,9 @@ const App: React.FC = () => {
         </div>
         <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 uppercase tracking-widest font-bold gap-4 text-center">
            <span>&copy; {new Date().getFullYear()} {config.companyName}</span>
+           <span className="bg-gray-100 px-4 py-1.5 rounded-full text-gray-600 border border-gray-200">
+             Reg: {config.regNo} {config.tradeMark && ` | TM : ${config.tradeMark}`}
+           </span>
            <span>HQ: {config.regAddress}</span>
            <div className="flex gap-4">
              <button onClick={() => navigateToLogin('ADMIN')} className="hover:text-blue-600">Admin Login</button>
